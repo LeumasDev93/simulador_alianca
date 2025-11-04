@@ -21,13 +21,7 @@ export default function SimulationScreen() {
 
 
   return (
-    <div className="items-center justify-center min-h-screen">
-   
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#002B5B] mb-3 bg-gradient-to-r from-[#002B5B] to-[#004B9B] bg-clip-text text-transparent">
-          Simulador de Seguros da Aliança
-        </h1>              
-      </div>
+    <div className="items-center justify-center">
 
       {loading && (
         <LoadingContainer message="CARREGANDO SIMULAÇÕES..." />

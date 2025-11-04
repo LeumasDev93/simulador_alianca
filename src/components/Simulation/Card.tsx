@@ -2,6 +2,8 @@ import { Product } from "@/types/typesData";
 import { FaCar, FaHome, FaShieldAlt, FaPlane } from "react-icons/fa";
 import * as FaIcons from "react-icons/fa";
 import { LiaSpinnerSolid } from "react-icons/lia";
+import Image from "next/image";
+import simulacaoIcon from "@/assets/simulacao.png";
 
 const iconMap: Record<string, any> = {
   FaCar,
@@ -21,7 +23,7 @@ export default function Card({ product, onSimulate, isLoading }: { product: Prod
   const IconComponent = DynamicIcon || (product.icon ? iconMap[product.icon] : FaShieldAlt);
 
   return (
-    <div className="group rounded-2xl border-2 border-white/50 bg-white/90 backdrop-blur-sm p-6 md:p-7 w-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-blue-300">
+    <div className="group rounded-2xl border-2 border-blue-300/50 bg-gradient-to-br from-blue-200 to-blue-100 backdrop-blur-sm p-6 md:p-7 w-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-blue-400">
       <div className="flex flex-col gap-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -46,8 +48,17 @@ export default function Card({ product, onSimulate, isLoading }: { product: Prod
           disabled={isLoading}
           className="w-full bg-gradient-to-r from-[#002B5B] to-[#004B9B] hover:from-[#004B9B] hover:to-[#006BC5] disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold rounded-xl py-4 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-base"
         >
-          {isLoading && <LiaSpinnerSolid className="w-5 h-5 animate-spin" />}
-          {isLoading ? "Carregando..." : "✨ Simular Agora"}
+          {isLoading ? (
+            <>
+              <LiaSpinnerSolid className="w-5 h-5 animate-spin" />
+              Carregando...
+            </>
+          ) : (
+            <>
+              <Image src={simulacaoIcon} alt="Simular" width={20} height={20} className="w-5 h-5 brightness-0 invert" />
+              Simular Agora
+            </>
+          )}
         </button>
       </div>
     </div>
