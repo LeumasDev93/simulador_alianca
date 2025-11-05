@@ -33,7 +33,8 @@ interface SimulationResult {
 export const fetchSimulation = async (
 	formData: SimulationFormData,
 	setIsLoading: (loading: boolean) => void,
-	setSimulationResult: (result: SimulationResult) => void
+	setSimulationResult: (result: SimulationResult) => void,
+	csrfToken?: string
 ) => {
 	setIsLoading(true);
 	const session = await getSession();
@@ -116,9 +117,10 @@ export const fetchSimulation = async (
 	};
 
 	try {
-		// Busca o CSRF token
-		const csrfResponse = await fetch("/api/csrf-token");
-		const { token: csrfToken } = await csrfResponse.json();
+		// Valida se tem CSRF token
+		if (!csrfToken) {
+			throw new Error("Token de segurança não disponível. Recarregue a página.");
+		}
 
 		const response = await fetch("/api/simulation", {
 			method: "POST",

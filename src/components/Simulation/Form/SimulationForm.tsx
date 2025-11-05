@@ -78,15 +78,27 @@ export default function SimulationForm({
   const [isLoadingSimulation, setIsLoadingSimulation] = useState(false);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // Previne envios duplicados
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Load token on mount
+  
+  // Load token and CSRF token on mount
   useEffect(() => {
-    const loadToken = async () => {
+    const loadTokens = async () => {
       const session = await getSession();
       setToken(session?.user.accessToken || null);
+      
+      // Busca CSRF token uma única vez ao carregar
+      try {
+        const csrfResponse = await fetch("/api/csrf-token");
+        const { token } = await csrfResponse.json();
+        setCsrfToken(token);
+      } catch (error) {
+        console.error("Erro ao buscar CSRF token:", error);
+      }
     };
-    loadToken();
+    loadTokens();
   }, []);
 
   // Load vehicle brands when token available or brand changes
@@ -207,9 +219,23 @@ export default function SimulationForm({
     if (!validateTabFields(currentTab)) return;
 
     if (currentIndex === tabs.length - 1) {
-      // Previne envios duplicados
+      // Previne envios duplicados - verifica tempo desde último envio
+      const now = Date.now();
       if (isSubmitting) {
         console.log("Já existe uma simulação em andamento. Aguarde...");
+        return;
+      }
+      
+      // Previne envios em menos de 3 segundos
+      if (now - lastSubmitTime < 3000) {
+        console.log("Aguarde alguns segundos antes de enviar novamente.");
+        setSimulationError("Por favor, aguarde alguns segundos antes de enviar novamente.");
+        return;
+      }
+
+      // Valida se tem CSRF token
+      if (!csrfToken) {
+        setSimulationError("Erro de segurança. Recarregue a página e tente novamente.");
         return;
       }
 
@@ -217,14 +243,25 @@ export default function SimulationForm({
         setIsSubmitting(true);
         setIsLoadingSimulation(true);
         setSimulationError(null);
+        setLastSubmitTime(now);
 
         const data = await fetchSimulation(
           formValues as any,
           setIsLoading,
-          setSimulationResult
+          setSimulationResult,
+          csrfToken // Passa o CSRF token
         );
         setSimulationResult(data);
         setIsModalOpen(true);
+
+        // Após sucesso, gera novo token para próxima simulação
+        try {
+          const csrfResponse = await fetch("/api/csrf-token");
+          const { token } = await csrfResponse.json();
+          setCsrfToken(token);
+        } catch (error) {
+          console.error("Erro ao renovar CSRF token:", error);
+        }
 
         // Registro de atividade desativado conforme solicitação
       } catch (error: any) {
