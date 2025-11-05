@@ -27,7 +27,7 @@ function AutoAuth({ children }: { children: ReactNode }) {
 
   // Mostra loader enquanto autentica
   if (status === "loading" || status === "unauthenticated") {
-    return <LoadingContainer message="AUTENTICANDO..." fullHeight />;
+    return <LoadingContainer fullHeight />;
   }
 
   return <>{children}</>;
