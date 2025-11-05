@@ -1,32 +1,31 @@
-import { getSession } from "next-auth/react";
-
 export interface Model {
 	id: number;
 	name: string;
 }
 
 export async function fetchVehicleModels(brandId: number): Promise<Model[]> {
-	const session = await getSession();
+	try {
+		// Chama a API route local que faz a requisição do servidor
+		const response = await fetch(
+			`/api/brands/${brandId}/models`,
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				cache: 'no-store',
+			}
+		);
 
-	if (!session?.user.accessToken) {
-		throw new Error("Token de acesso não disponível");
-	}
-
-	const response = await fetch(
-		`/api/anywhere/api/v1/private/mobile/vehicle/brands/${brandId}/models`,
-		{
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${session.user.accessToken}`,
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			throw new Error(errorData.error || "Erro ao buscar modelos");
 		}
-	);
 
-	if (!response.ok) {
+		return await response.json();
+	} catch (error) {
+		console.error("Erro ao buscar modelos:", error);
 		throw new Error("Erro ao buscar modelos");
 	}
-
-	return await response.json();
 }

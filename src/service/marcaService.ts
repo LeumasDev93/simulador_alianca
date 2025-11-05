@@ -1,29 +1,23 @@
-import { getSession } from "next-auth/react";
-
 export interface Brand {
 	id: number;
 	name: string;
 }
 
 export async function fetchVehicleBrands(): Promise<Brand[]> {
-	const session = await getSession();
-
-	if (!session?.user.accessToken) {
-		throw new Error("Token de acesso não disponível");
-	}
-
 	try {
-		const response = await fetch('/api/anywhere/api/v1/private/mobile/vehicle/brands', {
+		// Chama a API route local que faz a requisição do servidor
+		const response = await fetch('/api/brands', {
 			method: "GET",
 			headers: {
-				Authorization: `Bearer ${session.user.accessToken}`,
 				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
+			cache: 'no-store',
 		});
 
 		if (!response.ok) {
-			throw new Error(`Erro ${response.status}: ${response.statusText}`);
+			const errorData = await response.json().catch(() => ({}));
+			throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
 		}
 
 		return await response.json();

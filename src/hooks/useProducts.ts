@@ -16,24 +16,23 @@ export function useProducts(): UseProductsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL_SIMULATOR}/simulador/1.0.0/products`;
-  const apiToken = process.env.API_SECRET_TOKEN;
-
   const fetchProducts = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(apiUrl, {
+      // Chama a API route local ao invés da API externa diretamente
+      const response = await fetch('/api/products', {
+        method: 'GET',
         headers: {
-          Authorization: `Bearer ${apiToken}`,
-          ApiKey: process.env.NEXT_PUBLIC_API_KEY || "",
           "Content-Type": "application/json",
         },
+        cache: 'no-store',
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       const data: ApiResponse<Product[]> = await response.json();
