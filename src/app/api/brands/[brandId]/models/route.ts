@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 
 interface RouteParams {
   params: Promise<{
@@ -17,11 +17,41 @@ export async function GET(
     // Pega o token da sessão do servidor
     const session = await getServerSession();
     
-    if (!session?.user?.accessToken) {
-      return NextResponse.json(
-        { error: "Token de acesso não disponível" },
-        { status: 401 }
+    let accessToken = session?.user?.accessToken;
+    
+    if (!accessToken) {
+      // Se não houver token, gera um novo
+      console.log("Gerando novo token OAuth...");
+      
+      const credentials = Buffer.from(
+        "ALIANCA_WEBSITE:TQzQzxvlKSZCzTAVjc2iP6CX"
+      ).toString("base64");
+
+      const tokenResponse = await fetch(
+        "https://aliancacvtest.rtcom.pt/anywhere/oauth/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${credentials}`,
+          },
+          body: new URLSearchParams({
+            grant_type: "client_credentials",
+            scope: "read write",
+          }),
+        }
       );
+
+      const tokenData = await tokenResponse.json();
+      
+      if (!tokenResponse.ok || !tokenData.access_token) {
+        return NextResponse.json(
+          { error: "Falha ao obter token de autenticação" },
+          { status: 401 }
+        );
+      }
+
+      accessToken = tokenData.access_token;
     }
 
     const response = await fetch(
@@ -29,7 +59,7 @@ export async function GET(
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${session.user.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },

@@ -77,6 +77,7 @@ export default function SimulationForm({
   const [simulationResult, setSimulationResult] = useState<any>(null);
   const [isLoadingSimulation, setIsLoadingSimulation] = useState(false);
   const [simulationError, setSimulationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Previne envios duplicados
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Load token on mount
@@ -206,7 +207,14 @@ export default function SimulationForm({
     if (!validateTabFields(currentTab)) return;
 
     if (currentIndex === tabs.length - 1) {
+      // Previne envios duplicados
+      if (isSubmitting) {
+        console.log("Já existe uma simulação em andamento. Aguarde...");
+        return;
+      }
+
       try {
+        setIsSubmitting(true);
         setIsLoadingSimulation(true);
         setSimulationError(null);
 
@@ -223,6 +231,7 @@ export default function SimulationForm({
         setSimulationError(error.message || "Erro ao executar simulação.");
       } finally {
         setIsLoadingSimulation(false);
+        setIsSubmitting(false);
       }
       return;
     }
@@ -427,10 +436,10 @@ export default function SimulationForm({
               onNext={goToNextTab}
               onPrevious={currentIndex > 0 ? goToPreviousTab : undefined}
               onCancel={onClose}
-              submitting={isLoadingSimulation}
+              submitting={isLoadingSimulation || isSubmitting}
               nextLabel={
                 currentIndex === tabs.length - 1
-                  ? "SIMULAR"
+                  ? (isSubmitting ? "PROCESSANDO..." : "SIMULAR")
                   : "AVANÇAR ▶"
               }
             />
