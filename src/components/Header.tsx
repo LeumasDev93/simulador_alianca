@@ -1,11 +1,12 @@
 import Image from "next/image";
 import aliancaLogo from "@/assets/alianca.png";
+import Link from "next/link";
 
 export default function Header() {
   return (
     <header className="w-full">
       <div className="flex items-center justify-center mb-8">
-        <div className="flex flex-col md:flex-row items-center gap-4">
+        <Link href="/" className="flex flex-col md:flex-row items-center gap-4">
           <Image 
             src={aliancaLogo} 
             alt="Aliança Logo" 
@@ -21,7 +22,7 @@ export default function Header() {
               Aliança Seguros
             </p>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );
