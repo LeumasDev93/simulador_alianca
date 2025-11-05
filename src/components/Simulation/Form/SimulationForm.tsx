@@ -356,8 +356,8 @@ export default function SimulationForm({
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-screen ">
       {/* Header */}
-      <div className="relative border-b-2 border-[#002B5B] flex justify-start">
-        <div className="flex flex-col ] p-2 md:px-6 md:py-4 shadow-xl rounded-t-xl w-full sm:w-96 relative items-center">
+      <div className="relative border-b-2 border-[#002B5B] flex justify-center">
+        <div className="flex flex-col bg-gray-50/80 backdrop-blur-sm p-2 md:px-6 md:py-4 shadow-xl rounded-t-xl w-full sm:w-96 relative items-center">
          
           <h2 className="text-sm text-[#002B5B] sm:text-sm md:font-semibold uppercase">
             SIMULADOR SEGURO {product.category}
