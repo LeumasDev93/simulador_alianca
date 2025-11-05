@@ -8,10 +8,12 @@ export async function POST(request: Request) {
     const { token, ...payload } = await request.json();
 
     if (!token) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Token não fornecido' },
         { status: 401 }
       );
+      errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+      return errorResponse;
     }
 
     if (process.env.NODE_ENV === 'development') {
@@ -34,20 +36,42 @@ export async function POST(request: Request) {
 
     if (!apiResponse.ok) {
       const errorData = await apiResponse.json();
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Erro na API externa', details: errorData },
         { status: apiResponse.status }
       );
+      errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+      return errorResponse;
     }
 
     const data = await apiResponse.json();
-    return NextResponse.json(data);
+    const response = NextResponse.json(data);
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
 
   } catch (error) {
     console.error('Erro na API:', error);
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Erro interno no servidor' },
       { status: 500 }
     );
+    errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+    return errorResponse;
   }
+}
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 }

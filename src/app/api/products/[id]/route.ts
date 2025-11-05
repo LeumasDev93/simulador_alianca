@@ -61,14 +61,39 @@ export async function GET(
 
     const data = await res.json();
     console.log("Product data received successfully");
-    return NextResponse.json(data, { status: 200 });
+    
+    const response = NextResponse.json(data, { status: 200 });
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, ApiKey');
+    
+    return response;
   } catch (err: any) {
     console.error("Error in GET /api/products/[id]:", err);
-    return NextResponse.json(
+    
+    const errorResponse = NextResponse.json(
       { error: "Falha ao obter detalhes do produto", details: String(err?.message || err) },
       { status: 500 }
     );
+    errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, ApiKey');
+    
+    return errorResponse;
   }
+}
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, ApiKey',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 }
 
 
