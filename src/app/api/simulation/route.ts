@@ -66,11 +66,12 @@ export async function POST(request: Request) {
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS() {
   return new NextResponse(null, {
-    status: 200,
+    status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS, PUT, DELETE, GET',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Requested-With',
+      'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400',
     },
   });

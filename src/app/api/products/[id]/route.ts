@@ -86,14 +86,19 @@ export async function GET(
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS() {
   return new NextResponse(null, {
-    status: 200,
+    status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, ApiKey',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, ApiKey, Accept, X-Requested-With',
+      'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400',
     },
   });
 }
+
+// Configuração para Vercel Edge Runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 

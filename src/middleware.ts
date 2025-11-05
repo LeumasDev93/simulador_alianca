@@ -2,32 +2,33 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Clone the response
-  const response = NextResponse.next();
-
-  // Add CORS headers
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, ApiKey, Accept');
-  response.headers.set('Access-Control-Max-Age', '86400');
-
   // Handle preflight requests
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
-      status: 200,
+      status: 204,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, ApiKey, Accept',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, ApiKey, Accept, X-Requested-With',
         'Access-Control-Max-Age': '86400',
+        'Access-Control-Allow-Credentials': 'true',
       },
     });
   }
+
+  // Clone the response for other requests
+  const response = NextResponse.next();
+
+  // Add CORS headers to all responses
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, ApiKey, Accept, X-Requested-With');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
 
   return response;
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: ['/api/:path*'],
 };
 
