@@ -138,6 +138,8 @@ export default function FormField({
   const [dateError, setDateError] = useState("");
   const [birthDateError, setBirthDateError] = useState("");
   const [licenseDateError, setLicenseDateError] = useState("");
+  // Estado local para erro de email
+  const [emailError, setEmailError] = useState("");
   // Estado local que sincroniza com o global
   const [localGlobalState, setLocalGlobalState] = useState(globalState);
   const [licenseDuration, setLicenseDuration] = useState<{
@@ -785,6 +787,52 @@ export default function FormField({
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      ) : field.type === "email" || field.name === "email" ? (
+        /* Input de Email com validação */
+        <div>
+          <input
+            id={field.name}
+            name={field.name}
+            type="email"
+            value={value}
+            placeholder={field.fieldPlaceholder || "exemplo@email.com"}
+            onChange={(e) => {
+              const emailValue = e.target.value;
+              onChange(emailValue);
+              
+              // Validação de email
+              if (emailValue && emailValue.trim() !== "") {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailValue)) {
+                  setEmailError("Por favor, insira um email válido (exemplo@dominio.com)");
+                } else {
+                  setEmailError("");
+                }
+              } else {
+                setEmailError("");
+              }
+            }}
+            onBlur={(e) => {
+              const emailValue = e.target.value;
+              // Validação adicional no blur
+              if (emailValue && emailValue.trim() !== "") {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailValue)) {
+                  setEmailError("Por favor, insira um email válido (exemplo@dominio.com)");
+                }
+              }
+            }}
+            className={`w-full p-2 border rounded-md text-gray-900 placeholder-gray-500 ${
+              emailError || error ? "border-red-500" : "border-gray-300"
+            } bg-white`}
+            required={field.required}
+          />
+          {emailError && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <span>⚠️</span> {emailError}
+            </p>
           )}
         </div>
       ) : (
