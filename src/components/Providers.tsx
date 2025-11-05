@@ -2,6 +2,7 @@
 
 import { SessionProvider, useSession, signIn } from "next-auth/react";
 import { ReactNode, useEffect } from "react";
+import { LoadingContainer } from "./ui/loading-container";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -26,14 +27,7 @@ function AutoAuth({ children }: { children: ReactNode }) {
 
   // Mostra loader enquanto autentica
   if (status === "loading" || status === "unauthenticated") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#002B5B] mx-auto mb-4"></div>
-          <p className="text-[#002B5B] font-semibold">Autenticando...</p>
-        </div>
-      </div>
-    );
+    return <LoadingContainer message="AUTENTICANDO..." fullHeight />;
   }
 
   return <>{children}</>;
