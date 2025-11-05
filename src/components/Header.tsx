@@ -13,12 +13,12 @@ export default function Header() {
             height={100} 
             className="w-16 h-16 md:w-20 md:h-20 object-contain"
           />
-          <div className="text-center md:text-left">
+          <div className="text-center justify-center md:text-left">
             <h1 className="text-3xl md:text-4xl font-bold text-[#002B5B]">
               Simulador
             </h1>
-            <p className="text-sm md:text-base text-[#004B9B]">
-              Alianças Seguros
+            <p className="text-sm md:text-base text-[#004B9B] pl-1">
+              Aliança Seguros
             </p>
           </div>
         </div>
