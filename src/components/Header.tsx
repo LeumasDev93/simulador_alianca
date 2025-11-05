@@ -9,8 +9,8 @@ export default function Header() {
           <Image 
             src={aliancaLogo} 
             alt="Aliança Logo" 
-            width={60} 
-            height={60} 
+            width={100} 
+            height={100} 
             className="w-16 h-16 md:w-20 md:h-20 object-contain"
           />
           <div className="text-center md:text-left">
