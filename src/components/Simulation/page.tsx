@@ -10,7 +10,6 @@ import { Product } from "@/types/typesData";
 import Image from "next/image";
 
 import { LoadingContainer } from "../ui/loading-container";
-import EmptyState from "./Form/EmptyState";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 export default function SimulationScreen() {
@@ -39,14 +38,8 @@ export default function SimulationScreen() {
           </div>
         </div>
       )}
-      {products.length < 1 && (
-        <EmptyState
-          message="Nenhuma simulação encontrada!"
-          showFilter={false}
-        />
-      )}
 
-      {products && products.length > 0 && (
+      {!loading && !error && products && products.length > 0 && (
         <ProductsTab
           loading={loading}
           error={error}

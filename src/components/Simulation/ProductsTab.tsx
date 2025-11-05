@@ -1,7 +1,6 @@
 import { Product } from "@/types/typesData";
 import { LoadingContainer } from "../ui/loading-container";
 import Card from "./Card";
-import EmptyState from "./Form/EmptyState";
 
 export default function ProductsTab({
   loading,
@@ -18,7 +17,7 @@ export default function ProductsTab({
 }) {
   if (loading) return <LoadingContainer message="CARREGANDO PRODUTOS..." />;
   if (error) return <p className="text-red-500">{error}</p>;
-  if (products.length === 0) return <EmptyState />;
+  if (products.length === 0) return null;
  console.log(products, "products");
   return (
     <div className="w-full">
