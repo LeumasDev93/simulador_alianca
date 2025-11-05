@@ -40,7 +40,7 @@ export default function Card({ product, onSimulate, isLoading }: { product: Prod
         </div>
 
         {product.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+          <p className="text-sm px-1 text-gray-600 line-clamp-2">{product.description}</p>
         )}
 
         <button

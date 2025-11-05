@@ -820,15 +820,40 @@ export default function FormField({
         .react-select--error .react-select__control {
           border-color: #ef4444;
         }
-        /* Date input readability */
-        input[type='date'] { color: #111827; }
+        /* Date input customização */
+        input[type='date'] { 
+          color: #111827;
+          position: relative;
+        }
         input[type='date']::-webkit-datetime-edit-ampm-field,
         input[type='date']::-webkit-datetime-edit-day-field,
         input[type='date']::-webkit-datetime-edit-month-field,
         input[type='date']::-webkit-datetime-edit-year-field,
-        input[type='date']::-webkit-datetime-edit { color: #111827; }
-        input[type='date']::-webkit-datetime-edit-text { color: #6b7280; }
-        input[type='date']::-webkit-calendar-picker-indicator { filter: invert(20%); }
+        input[type='date']::-webkit-datetime-edit { 
+          color: #111827; 
+        }
+        input[type='date']::-webkit-datetime-edit-text { 
+          color: #6b7280; 
+        }
+        /* Ícone do calendário customizado com cor dos botões */
+        input[type='date']::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          opacity: 1;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23002B5B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E") no-repeat center;
+          background-size: contain;
+          width: 20px;
+          height: 20px;
+          padding: 0;
+          margin-left: 8px;
+        }
+        input[type='date']::-webkit-calendar-picker-indicator:hover {
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23004B9B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E") no-repeat center;
+          background-size: contain;
+        }
+        /* Para Firefox */
+        input[type='date']::-moz-calendar-picker-indicator {
+          filter: invert(12%) sepia(85%) saturate(3026%) hue-rotate(201deg) brightness(89%) contrast(104%);
+        }
       `}</style>
     </div>
   );
