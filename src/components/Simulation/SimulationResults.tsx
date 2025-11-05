@@ -167,10 +167,15 @@ export function SimulationResults({ data, onClose, isOpen, reset }: Props) {
                   </div>
 
                   <div className="p-4 border-t">
-                    <button className="w-full bg-[#002855] text-white py-2 rounded-md hover:bg-[#002855]/70 transition-colors flex items-center justify-center">
+                    <a 
+                      href="https://portal-myalianca.vercel.app/backoffice?menu=Simulation"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-[#002855] text-white py-2 rounded-md hover:bg-[#002855]/70 transition-colors flex items-center justify-center"
+                    >
                       <FaFileInvoiceDollar className="mr-2" />
                       Contratar
-                    </button>
+                    </a>
                   </div>
                 </div>
               );
