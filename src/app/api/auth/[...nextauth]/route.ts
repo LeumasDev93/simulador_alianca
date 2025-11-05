@@ -2,6 +2,13 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const nextAuthOptions: NextAuthOptions = {
+  pages: {
+    signIn: '/', // Redireciona para a home ao invés da página de signin
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 horas
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
