@@ -1,5 +1,8 @@
+"use client";
+
 import { SimulationResponse } from "@/types/typesData";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Copy, X } from "lucide-react";
 import {
   FaCalendarAlt,
@@ -22,6 +25,8 @@ export function SimulationResults({ data, onClose, isOpen, reset }: Props) {
   if (!isOpen || !data) return null;
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
+  const router = useRouter();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -34,6 +39,8 @@ export function SimulationResults({ data, onClose, isOpen, reset }: Props) {
     if (onClose) {
       onClose();
     }
+    // Redireciona para a página inicial
+    router.push('/');
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
