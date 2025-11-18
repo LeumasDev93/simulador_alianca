@@ -185,6 +185,7 @@ export interface ImagemProfile {
     icon?: string;
     category?: string;
     tabs?: any[];
+    bodyTemplate?: string;
   };
 
   export interface ApiResponse<T> {

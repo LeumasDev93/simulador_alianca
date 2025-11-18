@@ -3,6 +3,7 @@
 import React, { JSX, useEffect, useState } from "react";
 import FormHeader from "./FormHeader";
 import FormField from "./FormField";
+import DynamicFormField from "./DynamicFormField";
 import FormActions from "./FormActions";
 import EmptyState from "./EmptyState";
 import ErrorState from "./ErrorState";
@@ -11,6 +12,7 @@ import { useProductDetails } from "@/hooks/useProdutsDetails";
 import { Tabs, TabsContent, TabsList } from "@radix-ui/react-tabs";
 import { FaUser, FaUserTie, FaCar, FaCalculator } from "react-icons/fa";
 import { fetchSimulation } from "@/service/simulationService";
+import { fetchDynamicSimulation } from "@/service/dynamicSimulationService";
 import { getSafeGridClass } from "@/lib/utils";
 import { fetchVehicleBrands } from "@/service/marcaService";
 import { fetchVehicleModels } from "@/service/modeloService";
@@ -160,16 +162,24 @@ export default function SimulationForm({
     }
   }, [selectedBrandId, token]);
 
-  // Inicializa valores do formulário sem pré-preenchimento
+  // Inicializa valores do formulário
   useEffect(() => {
     if (!product) return;
     const tabs = (product.tabs || []) as any[];
     const initialValues: Record<string, any> = {};
+    
+    // Inicializa valores padrão dos campos
     tabs.forEach((tab: any) => {
       tab.form.fields.forEach((field: any) => {
-        initialValues[field.name] = "";
+        // Se tem defaultValue, usa ele
+        if (field.defaultValue) {
+          initialValues[field.name] = field.defaultValue;
+        } else {
+          initialValues[field.name] = "";
+        }
       });
     });
+    
     setFormValues(initialValues);
     if (tabs.length > 0) setActiveTab(tabs[0].title);
   }, [product]);
@@ -245,12 +255,25 @@ export default function SimulationForm({
         setSimulationError(null);
         setLastSubmitTime(now);
 
-        const data = await fetchSimulation(
-          formValues as any,
-          setIsLoading,
-          setSimulationResult,
-          csrfToken // Passa o CSRF token
-        );
+        // Usa simulação dinâmica se o produto tem bodyTemplate
+        let data;
+        if (product.bodyTemplate) {
+          data = await fetchDynamicSimulation(
+            product.bodyTemplate,
+            formValues,
+            setIsLoading,
+            setSimulationResult,
+            csrfToken
+          );
+        } else {
+          // Fallback para simulação estática
+          data = await fetchSimulation(
+            formValues as any,
+            setIsLoading,
+            setSimulationResult,
+            csrfToken
+          );
+        }
         setSimulationResult(data);
         setIsModalOpen(true);
 
@@ -447,13 +470,13 @@ export default function SimulationForm({
                   {tab.form.fields
                     .sort((a: any, b: any) => a.position - b.position)
                     .map((field: any) => {
-                      const fieldValue = formValues[field.name];
+                      const fieldValue = formValues[field.name] || "";
                       console.log(
                         `Renderizando campo ${field.name} com valor:`,
                         fieldValue
                       );
                       return (
-                        <FormField
+                        <DynamicFormField
                           key={field.name}
                           field={field}
                           value={fieldValue}
@@ -461,7 +484,7 @@ export default function SimulationForm({
                           onChange={(value: string) =>
                             handleFieldChange(field.name, value)
                           }
-                          options={[]}
+                          dependencies={formValues}
                         />
                       );
                     })}
