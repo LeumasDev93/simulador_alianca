@@ -33,7 +33,6 @@ interface SimulationResult {
 export const fetchSimulation = async (
 	formData: SimulationFormData,
 	setIsLoading: (loading: boolean) => void,
-	setSimulationResult: (result: SimulationResult) => void,
 	csrfToken?: string
 ) => {
 	setIsLoading(true);
@@ -148,8 +147,6 @@ export const fetchSimulation = async (
 		}
 
 		const simulationResult = await response.json();
-		setSimulationResult(simulationResult.installmentValues);
-
 		return simulationResult;
 	} catch (error) {
 		console.error("Falha na simulação:", {

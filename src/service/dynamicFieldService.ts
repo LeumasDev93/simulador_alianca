@@ -24,7 +24,9 @@ export async function fetchDomainData(domainCode: string): Promise<FieldOption[]
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao buscar dados de domínio: ${response.status}`);
+      // Não faz throw, apenas loga o erro e retorna array vazio
+      console.error(`Erro ao buscar dados de domínio: ${response.status}`);
+      return []; // Retorna array vazio ao invés de fazer throw
     }
 
     const data = await response.json();
@@ -75,8 +77,9 @@ export async function fetchDomainData(domainCode: string): Promise<FieldOption[]
     console.warn("Formato de dados não reconhecido:", data);
     return [];
   } catch (error) {
+    // Não faz throw, apenas loga o erro e retorna array vazio
     console.error(`Erro ao buscar dados de domínio ${domainCode}:`, error);
-    throw error;
+    return []; // Retorna array vazio ao invés de fazer throw
   }
 }
 
@@ -111,7 +114,9 @@ export async function fetchApiData(
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao buscar dados da API: ${response.status}`);
+      // Não faz throw, apenas loga o erro e retorna array vazio
+      console.error(`Erro ao buscar dados da API: ${response.status}`);
+      return []; // Retorna array vazio ao invés de fazer throw
     }
 
     const data = await response.json();
@@ -147,8 +152,9 @@ export async function fetchApiData(
 
     return [];
   } catch (error) {
+    // Não faz throw, apenas loga o erro e retorna array vazio
     console.error(`Erro ao buscar dados da API ${sourceData}:`, error);
-    throw error;
+    return []; // Retorna array vazio ao invés de fazer throw
   }
 }
 

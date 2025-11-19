@@ -17,12 +17,21 @@ export default function ProductsTab({
 }) {
   if (loading) return <LoadingContainer message="CARREGANDO PRODUTOS..." />;
   if (error) return <p className="text-red-500">{error}</p>;
-  if (products.length === 0) return null;
- console.log(products, "products");
+
+  const publicProducts = products.filter((product) => product.public);
+  if (publicProducts.length === 0) {
+    return (
+      <p className="text-center text-gray-600">
+        Nenhum simulador público disponível no momento.
+      </p>
+    );
+  }
+
+  console.log(products, "products");
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 items-stretch sm:items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {products.map((product) => (
+        {publicProducts.map((product) => (
           <div
             key={product.productId}
             className="w-full sm:w-auto sm:flex-1 sm:max-w-[320px]"

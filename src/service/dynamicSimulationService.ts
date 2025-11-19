@@ -1,4 +1,4 @@
-import { getSession, signIn } from "next-auth/react";
+import { getSession } from "next-auth/react";
 
 /**
  * Gera o payload de simulação dinamicamente baseado no bodyTemplate
@@ -30,57 +30,79 @@ export function generateSimulationPayload(
     };
 
     // Substitui todos os placeholders $variableName
-    // Primeiro, trata valores que são arrays ou objetos (não strings)
-    const processedValues: Record<string, any> = {};
+    const specialArrayFields = new Set(["emails", "mobiles"]);
+    const valueMap: Record<string, any> = {};
+
     Object.keys(formValues).forEach((key) => {
       const value = formValues[key];
-      if (value !== null && value !== undefined && value !== "") {
-        // Campos que devem ser arrays
-        if (key === "emails" || key === "mobiles") {
-          // Se já é array, mantém; senão, converte para array
-          if (Array.isArray(value)) {
-            processedValues[key] = JSON.stringify(value);
-          } else {
-            processedValues[key] = JSON.stringify([String(value)]);
-          }
-        } else if (Array.isArray(value)) {
-          processedValues[key] = JSON.stringify(value);
-        } else if (typeof value === "object") {
-          processedValues[key] = JSON.stringify(value);
+      if (specialArrayFields.has(key)) {
+        if (Array.isArray(value)) {
+          valueMap[key] = value;
+        } else if (value !== undefined && value !== null && value !== "") {
+          valueMap[key] = [String(value)];
         } else {
-          processedValues[key] = String(value);
+          valueMap[key] = [];
         }
+      } else if (value !== undefined && value !== null) {
+        valueMap[key] = value;
       } else {
-        // Para arrays vazios, retorna array vazio
-        if (key === "emails" || key === "mobiles") {
-          processedValues[key] = "[]";
-        } else {
-          processedValues[key] = "";
-        }
+        valueMap[key] = "";
       }
     });
 
-    // Substitui placeholders simples (strings)
-    payloadString = payloadString.replace(/\$(\w+)/g, (match, key) => {
-      const value = processedValues[key];
-      if (value === undefined || value === "") {
-        // Se é um campo de array, retorna array vazio
-        if (key === "emails" || key === "mobiles") {
-          return "[]";
-        }
+    const getJsonLiteral = (key: string, rawValue: any): string => {
+      if (specialArrayFields.has(key)) {
+        const arrayValue = rawValue
+          ? Array.isArray(rawValue)
+            ? rawValue
+            : [String(rawValue)]
+          : [];
+        return JSON.stringify(arrayValue);
+      }
+
+      if (rawValue === undefined || rawValue === null) {
         return '""';
       }
-      // Se já é JSON (array ou objeto), retorna direto
-      if ((value.startsWith("[") && value.endsWith("]")) || 
-          (value.startsWith("{") && value.endsWith("}"))) {
-        return value;
+
+      if (Array.isArray(rawValue) || typeof rawValue === "object") {
+        try {
+          return JSON.stringify(rawValue);
+        } catch (err) {
+          console.error("Erro ao serializar objeto para placeholder", key, err);
+          return '""';
+        }
       }
-      // Se é número, retorna sem aspas
-      if (!isNaN(Number(value)) && value.trim() !== "") {
-        return value;
+
+      const valueStr = String(rawValue);
+      const trimmed = valueStr.trim();
+
+      if (trimmed === "") {
+        return '""';
       }
-      // Se é string, escapa e adiciona aspas
-      return `"${escapeJsonString(value)}"`;
+
+      if (typeof rawValue === "number") {
+        return String(rawValue);
+      }
+
+      if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+        return trimmed;
+      }
+
+      return `"${escapeJsonString(valueStr)}"`;
+    };
+
+    // Primeiro substitui placeholders que estão entre aspas
+    payloadString = payloadString.replace(
+      /"\$(\w+)"/g,
+      (match, key: string) => {
+        const literal = getJsonLiteral(key, valueMap[key]);
+        return literal;
+      }
+    );
+
+    // Depois substitui os restantes (fora de aspas)
+    payloadString = payloadString.replace(/\$(\w+)/g, (match, key) => {
+      return getJsonLiteral(key, valueMap[key]);
     });
 
     // Trata campos que podem ter nomes diferentes (email -> emails)
@@ -92,7 +114,15 @@ export function generateSimulationPayload(
     }
 
     // Parse do JSON resultante
-    const payload = JSON.parse(payloadString);
+    let payload;
+    try {
+      payload = JSON.parse(payloadString);
+    } catch (parseError) {
+      console.error("Payload inválido. Conteúdo gerado:", payloadString);
+      throw new Error(
+        "Erro ao gerar payload da simulação. Verifique os campos preenchidos."
+      );
+    }
 
     // Adiciona campos adicionais necessários
     const generateRandomSimulationId = (): number => {
@@ -135,18 +165,10 @@ export const fetchDynamicSimulation = async (
   bodyTemplate: string,
   formValues: Record<string, any>,
   setIsLoading: (loading: boolean) => void,
-  setSimulationResult: (result: any) => void,
   csrfToken?: string
 ) => {
   setIsLoading(true);
-  const session = await getSession();
-
-  if (!session?.user?.accessToken) {
-    console.warn("Nenhum token encontrado - redirecionando para login");
-    signIn();
-    return null;
-  }
-
+  
   try {
     // Valida se tem CSRF token
     if (!csrfToken) {
@@ -156,6 +178,16 @@ export const fetchDynamicSimulation = async (
     // Gera o payload dinamicamente
     const payload = generateSimulationPayload(bodyTemplate, formValues);
 
+    // Tenta obter token da sessão, mas se não houver, a rota API gerará um novo
+    const session = await getSession();
+    const token = session?.user?.accessToken || "";
+
+    console.log("Enviando simulação:", {
+      hasToken: !!token,
+      payloadKeys: Object.keys(payload),
+      csrfToken: !!csrfToken
+    });
+
     const response = await fetch("/api/simulation", {
       method: "POST",
       headers: {
@@ -164,7 +196,7 @@ export const fetchDynamicSimulation = async (
         "x-csrf-token": csrfToken,
       },
       body: JSON.stringify({
-        token: session.user.accessToken,
+        token: token, // Se vazio, a rota API gerará um novo
         ...payload,
       }),
       cache: "no-store",
@@ -182,17 +214,14 @@ export const fetchDynamicSimulation = async (
     }
 
     const simulationResult = await response.json();
-    setSimulationResult(simulationResult.installmentValues);
-
     return simulationResult;
   } catch (error) {
     console.error("Falha na simulação:", {
       error: error instanceof Error ? error.message : error,
       timestamp: new Date().toISOString(),
     });
-    if (error instanceof Error && error.message.includes("401")) {
-      signIn();
-    }
+    // Não redireciona para login - produtos públicos não precisam de sessão
+    // A rota API já gera token automaticamente se necessário
     throw error;
   } finally {
     setIsLoading(false);

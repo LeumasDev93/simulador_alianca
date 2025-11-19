@@ -1,26 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { useProducts } from "@/hooks/useProducts";
 // SimulationForm não é mais usado aqui; navegação vai para /simulaction
-import ProductsTab from "./ProductsTab";
-// Removed MySimulationsTab per requirement: only products and step form
+import ProductsTab from "../simulation/ProductsTab";
 import { Product } from "@/types/typesData";
-import Image from "next/image";
 
 import { LoadingContainer } from "../ui/loading-container";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 export default function SimulationScreen() {
   const { products, loading, error } = useProducts();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [activeTab, setActiveTab] = useState("types");
 
 
   return (
-    <div className="items-center justify-center">
+    <section className="w-full flex flex-col items-center justify-center flex-1 py-8">
 
       {loading && (
         <LoadingContainer message="CARREGANDO SIMULAÇÕES..." />
@@ -51,6 +45,6 @@ export default function SimulationScreen() {
       )}
 
 
-    </div>
+    </section>
   );
 }

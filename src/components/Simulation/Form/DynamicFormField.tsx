@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { useDynamicFieldData } from "@/hooks/useDynamicFieldData";
+import { validateFieldPattern } from "@/lib/validations";
 
 interface Option {
   id: number | string;
@@ -35,6 +36,7 @@ interface FormFieldProps {
   error?: string;
   onChange: (value: string) => void;
   dependencies?: Record<string, any>; // Valores de outros campos para dependências
+  isPublic?: boolean;
 }
 
 // Estado global para campos dependentes (ex: brand -> model)
@@ -66,11 +68,13 @@ export default function DynamicFormField({
   onChange,
   error,
   dependencies = {},
+  isPublic = false,
 }: FormFieldProps) {
   const [filter, setFilter] = useState(value || "");
   const [showOptions, setShowOptions] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [dateError, setDateError] = useState("");
+  const [patternError, setPatternError] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const isUserTypingRef = useRef(false);
 
@@ -121,15 +125,31 @@ export default function DynamicFormField({
     );
   }
 
-  // Validação de padrão (apenas para validação, não bloqueia escrita)
+  // Validação de padrão usando funções específicas para NIF e telefone
   const validatePattern = (val: string): boolean => {
-    if (!field.pattern || !val) return true;
-    try {
-      const regex = new RegExp(field.pattern);
-      return regex.test(val);
-    } catch {
+    // Se o valor está vazio, não valida (validação de required é separada)
+    if (!val || val.trim() === "") {
+      setPatternError("");
       return true;
     }
+    
+    // Valida sempre se tem pattern OU se é campo conhecido (NIF/telefone)
+    const isNIFOrPhone = field.name.toLowerCase() === "nif" || 
+                        field.name.toLowerCase() === "mobiles" ||
+                        field.name.toLowerCase() === "telefone" ||
+                        field.name.toLowerCase() === "phone" ||
+                        field.name.toLowerCase() === "mobile";
+    
+    if (field.pattern || isNIFOrPhone) {
+      const validation = validateFieldPattern(val, field.pattern, field.name);
+      if (!validation.isValid) {
+        setPatternError(validation.error || "Valor inválido");
+        return false;
+      }
+    }
+    
+    setPatternError("");
+    return true;
   };
 
   const handleChange = (newValue: string) => {
@@ -139,45 +159,102 @@ export default function DynamicFormField({
 
   // Determina se o campo deve ser readonly
   // Apenas se explicitamente marcado como readonly
-  const isFieldReadOnly = field.isReadOnly === true;
+  const isFieldReadOnly = field.isReadOnly === true && !isPublic;
 
   // Renderiza campo baseado no tipo
   const renderField = () => {
     // Campo de texto padrão
     if (field.type === "text" || !field.type) {
       return (
-        <input
-          id={field.name}
-          name={field.name}
-          type="text"
-          value={value || ""}
-          placeholder={field.fieldPlaceholder}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            handleChange(newValue);
-          }}
-          onBlur={(e) => {
-            // Valida padrão apenas quando o campo perde o foco
-            if (field.pattern && e.target.value) {
-              if (!validatePattern(e.target.value)) {
-                // A validação será mostrada pelo erro do formulário
-                console.warn(`Valor não corresponde ao padrão para ${field.name}`);
+        <div>
+          <input
+            id={field.name}
+            name={field.name}
+            type="text"
+            value={value || ""}
+            placeholder={field.fieldPlaceholder}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              handleChange(newValue);
+              // Limpa erro ao digitar
+              if (patternError) {
+                setPatternError("");
               }
-            }
-          }}
-          className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
-            error ? "border-red-500" : "border-gray-300"
-          } bg-white`}
-          required={field.required}
-          readOnly={isFieldReadOnly}
-          maxLength={field.fieldMaxSize}
-          minLength={field.fieldMinSize}
-        />
+            }}
+            onBlur={(e) => {
+              // Valida padrão quando o campo perde o foco
+              if (e.target.value) {
+                validatePattern(e.target.value);
+              } else {
+                setPatternError("");
+              }
+            }}
+            className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
+              error || patternError ? "border-red-500" : "border-gray-300"
+            } bg-white`}
+            required={field.required}
+            readOnly={isFieldReadOnly}
+            maxLength={field.fieldMaxSize}
+            minLength={field.fieldMinSize}
+          />
+          {patternError && (
+            <p className="text-red-500 text-xs sm:text-sm mt-1">{patternError}</p>
+          )}
+        </div>
       );
     }
 
     // Campo numérico
     if (field.type === "number") {
+      // Para NIF e telefone, usa input text para melhor controle
+      const isNIFOrPhone = field.name.toLowerCase() === "nif" || 
+                          field.name.toLowerCase() === "mobiles" ||
+                          field.name.toLowerCase() === "telefone" ||
+                          field.name.toLowerCase() === "phone" ||
+                          field.name.toLowerCase() === "mobile";
+      
+      if (isNIFOrPhone) {
+        return (
+          <div>
+            <input
+              id={field.name}
+              name={field.name}
+              type="text"
+              inputMode="numeric"
+              value={value || ""}
+              placeholder={field.fieldPlaceholder}
+              onChange={(e) => {
+                // Permite apenas números
+                const newValue = e.target.value.replace(/\D/g, "");
+                handleChange(newValue);
+                // Limpa erro ao digitar
+                if (patternError) {
+                  setPatternError("");
+                }
+              }}
+              onBlur={(e) => {
+                // Valida quando perde o foco
+                if (e.target.value) {
+                  validatePattern(e.target.value);
+                } else {
+                  setPatternError("");
+                }
+              }}
+              className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
+                error || patternError ? "border-red-500" : "border-gray-300"
+              } bg-white`}
+              required={field.required}
+              readOnly={isFieldReadOnly}
+              maxLength={field.fieldMaxSize || (field.name.toLowerCase() === "nif" ? 9 : 9)}
+              minLength={field.fieldMinSize || (field.name.toLowerCase() === "nif" ? 9 : 7)}
+            />
+            {patternError && (
+              <p className="text-red-500 text-xs sm:text-sm mt-1">{patternError}</p>
+            )}
+          </div>
+        );
+      }
+      
       return (
         <input
           id={field.name}
@@ -189,8 +266,16 @@ export default function DynamicFormField({
             const newValue = e.target.value;
             handleChange(newValue);
           }}
+          onBlur={(e) => {
+            // Valida padrão quando perde o foco
+            if (field.pattern && e.target.value) {
+              validatePattern(e.target.value);
+            } else {
+              setPatternError("");
+            }
+          }}
           className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
-            error ? "border-red-500" : "border-gray-300"
+            error || patternError ? "border-red-500" : "border-gray-300"
           } bg-white`}
           required={field.required}
           readOnly={isFieldReadOnly}
@@ -296,7 +381,7 @@ export default function DynamicFormField({
 
       if (dataError) {
         return (
-          <div className="text-red-500 bg-red-50 p-2 border border-red-300 rounded-md">
+          <div className="text-gray-600 bg-gray-50 p-2 border border-gray-300 rounded-md text-sm">
             {dataError}
           </div>
         );
@@ -362,6 +447,14 @@ export default function DynamicFormField({
         );
       }
 
+      if (dataError) {
+        return (
+          <div className="text-gray-600 bg-gray-50 p-2 border border-gray-300 rounded-md text-sm">
+            {dataError}
+          </div>
+        );
+      }
+
       return (
         <div className="relative" ref={containerRef}>
           <input
@@ -379,7 +472,7 @@ export default function DynamicFormField({
             onBlur={() => setTimeout(() => setShowOptions(false), 200)}
             autoComplete="off"
             className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
-              error ? "border-red-500" : "border-gray-300"
+              error || patternError ? "border-red-500" : "border-gray-300"
             } bg-white`}
             required={field.required}
           />
@@ -406,22 +499,39 @@ export default function DynamicFormField({
 
     // Fallback para outros tipos
     return (
-      <input
-        id={field.name}
-        name={field.name}
-        type={field.type}
-        value={value || ""}
-        placeholder={field.fieldPlaceholder}
-        onChange={(e) => {
-          const newValue = e.target.value;
-          handleChange(newValue);
-        }}
-        className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
-          error ? "border-red-500" : "border-gray-300"
-        } bg-white`}
-        required={field.required}
-        readOnly={isFieldReadOnly}
-      />
+      <div>
+        <input
+          id={field.name}
+          name={field.name}
+          type={field.type}
+          value={value || ""}
+          placeholder={field.fieldPlaceholder}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            handleChange(newValue);
+            // Limpa erro ao digitar
+            if (patternError) {
+              setPatternError("");
+            }
+          }}
+          onBlur={(e) => {
+            // Valida padrão quando perde o foco
+            if (field.pattern && e.target.value) {
+              validatePattern(e.target.value);
+            } else {
+              setPatternError("");
+            }
+          }}
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm border rounded-lg text-gray-900 placeholder-gray-500 ${
+            error || patternError ? "border-red-500" : "border-gray-300"
+          } bg-white`}
+          required={field.required}
+          readOnly={isFieldReadOnly}
+        />
+        {patternError && (
+          <p className="text-red-500 text-xs sm:text-sm mt-1">{patternError}</p>
+        )}
+      </div>
     );
   };
 

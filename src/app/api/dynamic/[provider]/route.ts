@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
+import { getValidToken, generateOAuthToken, isTokenExpiredError, fetchWithTokenRefresh } from "@/lib/tokenUtils";
 
 interface RouteParams {
   params: Promise<{
@@ -25,41 +26,20 @@ export async function GET(
     
     const session = await getServerSession();
     
-    let accessToken = session?.user?.accessToken;
-    
-    if (!accessToken) {
-      // Se não houver token, gera um novo
-      console.log("Gerando novo token OAuth...");
-      
-      const credentials = Buffer.from(
-        "ALIANCA_WEBSITE:TQzQzxvlKSZCzTAVjc2iP6CX"
-      ).toString("base64");
-
-      const tokenResponse = await fetch(
-        "https://aliancacvtest.rtcom.pt/anywhere/oauth/token",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Basic ${credentials}`,
-          },
-          body: new URLSearchParams({
-            grant_type: "client_credentials",
-            scope: "read write",
-          }),
-        }
-      );
-
-      const tokenData = await tokenResponse.json();
-      
-      if (!tokenResponse.ok || !tokenData.access_token) {
-        return NextResponse.json(
-          { error: "Falha ao obter token de autenticação" },
-          { status: 401 }
-        );
+    // Para Anywhere, sempre gera um novo token se não houver sessão válida
+    // Isso garante que sempre temos um token válido ao carregar a página
+    let accessToken: string;
+    if (provider === "Anywhere") {
+      if (!session?.user?.accessToken) {
+        // Gera novo token se não houver na sessão
+        accessToken = await generateOAuthToken();
+      } else {
+        // Usa o token da sessão, mas será renovado automaticamente se expirar
+        accessToken = session.user.accessToken;
       }
-
-      accessToken = tokenData.access_token;
+    } else {
+      // Para outros providers, usa a lógica padrão
+      accessToken = await getValidToken(session?.user?.accessToken);
     }
 
     // Determina a URL base baseado no provider
@@ -79,29 +59,64 @@ export async function GET(
     } else if (endpoint.startsWith("/")) {
       // Caminho absoluto
       fullUrl = `${baseUrl}${endpoint}`;
-    } else if (endpoint.startsWith("private/") || endpoint.startsWith("api/")) {
-      // Já inclui o prefixo
+    } else if (endpoint.startsWith("private/") || endpoint.startsWith("api/v1/private/")) {
+      // Se já começa com private/ ou api/v1/private/, adiciona /api/v1/ se necessário
+      if (endpoint.startsWith("private/")) {
+        fullUrl = `${baseUrl}/api/v1/${endpoint}`;
+      } else {
+        fullUrl = `${baseUrl}/${endpoint}`;
+      }
+    } else if (endpoint.startsWith("api/")) {
+      // Se começa com api/, adiciona direto
       fullUrl = `${baseUrl}/${endpoint}`;
     } else {
       // Caminho relativo - adiciona prefixo padrão
       fullUrl = `${baseUrl}/api/v1/private/${endpoint}`;
     }
 
-    const response = await fetch(fullUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
+    // Debug: log da URL construída
+    console.log(`[Dynamic API] Provider: ${provider}, Endpoint: ${endpoint}, Full URL: ${fullUrl}`);
+
+    // Executa a requisição com retry automático em caso de token expirado
+    const response = await fetchWithTokenRefresh(
+      async (token: string) => {
+        return await fetch(fullUrl, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          cache: "no-store",
+        });
       },
-      cache: "no-store",
-    });
+      async () => {
+        const currentSession = await getServerSession();
+        return currentSession?.user?.accessToken;
+      }
+    );
 
     if (!response.ok) {
       const text = await response.text();
-      console.error("Error fetching dynamic API data:", response.status, text);
+      let errorData: any = {};
+      try {
+        errorData = JSON.parse(text);
+      } catch {
+        errorData = { error: text };
+      }
+      
+      console.error("Error fetching dynamic API data:", response.status, errorData);
+      
+      // Se ainda for erro de token após retry, retorna erro específico
+      if (isTokenExpiredError(errorData)) {
+        return NextResponse.json(
+          { error: "Token de autenticação expirado. Por favor, recarregue a página." },
+          { status: 401 }
+        );
+      }
+      
       return NextResponse.json(
-        { error: "Erro ao buscar dados da API" },
+        { error: errorData.error || "Erro ao buscar dados da API" },
         { status: response.status }
       );
     }
@@ -114,8 +129,18 @@ export async function GET(
     return result;
   } catch (error) {
     console.error("Error in GET /api/dynamic/[provider]:", error);
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    const { searchParams } = new URL(request.url);
+    const endpointParam = searchParams.get("endpoint") || "unknown";
+    const { provider: providerParam } = await context.params;
+    
     return NextResponse.json(
-      { error: "Falha ao buscar dados da API" },
+      { 
+        error: "Falha ao buscar dados da API",
+        details: errorMessage,
+        endpoint: endpointParam,
+        provider: providerParam
+      },
       { status: 500 }
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { SimulationResponse } from "@/types/typesData";
+import { InstallmentValue, SimulationResponse } from "@/types/typesData";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Copy, X } from "lucide-react";
@@ -19,9 +19,16 @@ interface Props {
   onClose?: () => void;
   isOpen: boolean;
   reset: () => void;
+  onSelectInstallment?: (installment: InstallmentValue) => void;
 }
 
-export function SimulationResults({ data, onClose, isOpen, reset }: Props) {
+export function SimulationResults({
+  data,
+  onClose,
+  isOpen,
+  reset,
+  onSelectInstallment,
+}: Props) {
   if (!isOpen || !data) return null;
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -174,15 +181,26 @@ export function SimulationResults({ data, onClose, isOpen, reset }: Props) {
                   </div>
 
                   <div className="p-4 border-t">
-                    <a 
-                      href="https://portal-myalianca.vercel.app/backoffice?menu=Simulation"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-[#002855] text-white py-2 rounded-md hover:bg-[#002855]/70 transition-colors flex items-center justify-center"
-                    >
-                      <FaFileInvoiceDollar className="mr-2" />
-                      Contratar
-                    </a>
+                    {onSelectInstallment ? (
+                      <button
+                        type="button"
+                        onClick={() => onSelectInstallment(installment)}
+                        className="w-full bg-[#002855] text-white py-2 rounded-md hover:bg-[#002855]/70 transition-colors flex items-center justify-center"
+                      >
+                        <FaFileInvoiceDollar className="mr-2" />
+                        Contratar
+                      </button>
+                    ) : (
+                      <a
+                        href="https://portal-myalianca.vercel.app/backoffice?menu=Simulation"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-[#002855] text-white py-2 rounded-md hover:bg-[#002855]/70 transition-colors flex items-center justify-center"
+                      >
+                        <FaFileInvoiceDollar className="mr-2" />
+                        Contratar
+                      </a>
+                    )}
                   </div>
                 </div>
               );

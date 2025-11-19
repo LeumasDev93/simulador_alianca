@@ -23,11 +23,11 @@ export default function Card({ product, onSimulate, isLoading }: { product: Prod
   const IconComponent = DynamicIcon || (product.icon ? iconMap[product.icon] : FaShieldAlt);
 
   return (
-    <div className="group rounded-2xl border-2 border-blue-300/50 bg-gradient-to-br from-blue-200 to-blue-100 backdrop-blur-sm p-6 md:p-7 w-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-blue-400">
+    <div className="group rounded-2xl border-2 border-blue-300/50 bg-gradient-to-br from-blue-100 to-blue-50 backdrop-blur-sm p-6 md:p-7 w-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:border-blue-400">
       <div className="flex flex-col gap-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-xl md:text-2xl font-bold text-[#002B5B] mb-2 group-hover:text-blue-600 transition-colors">
+            <h3 className="text-xl md:text-2xl font-bold text-[#002B5B] mb-2 group-hover:text-blue-950/70 transition-colors">
               {product.name}
             </h3>
             <p className="text-sm text-gray-600 font-medium bg-blue-50 px-3 py-1 rounded-full inline-block">
@@ -46,7 +46,7 @@ export default function Card({ product, onSimulate, isLoading }: { product: Prod
         <button
           onClick={() => onSimulate?.(product)}
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-[#002B5B] to-[#004B9B] hover:from-[#004B9B] hover:to-[#006BC5] disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold rounded-xl py-4 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-base"
+          className="w-full cursor-pointer bg-gradient-to-r from-[#002B5B] to-[#004B9B] hover:from-[#004B9B] hover:to-[#006BC5] disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold rounded-xl py-4 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-base"
         >
           {isLoading ? (
             <>

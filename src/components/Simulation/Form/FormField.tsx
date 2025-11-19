@@ -621,7 +621,7 @@ export default function FormField({
               value: brand.name,
               label: brand.name,
             }))}
-            className={`react-select-container text-gray-500 ${
+            className={`react-select-container ${
               error ? "react-select--error" : ""
             }`}
             classNamePrefix="react-select"
@@ -670,11 +670,12 @@ export default function FormField({
               error ? "border-red-500" : "border-gray-300"
             } bg-white`}
             required={field.required}
+            style={{ color: '#111827' }}
           >
-            <option value="">{modelFieldState.placeholder}</option>
+            <option value="" style={{ color: '#6b7280' }}>{modelFieldState.placeholder}</option>
             {modelFieldState.showOptions &&
               localGlobalState.modelOptions.map((model) => (
-                <option key={model.id} value={model.name}>
+                <option key={model.id} value={model.name} style={{ color: '#111827' }}>
                   {model.name}
                 </option>
               ))}
@@ -692,7 +693,7 @@ export default function FormField({
             onChange(newValue);
           }}
           options={tipoUtilizadorOptions}
-          className={`react-select-container text-gray-500 ${
+          className={`react-select-container ${
             error ? "react-select--error" : ""
           }`}
           classNamePrefix="react-select"
@@ -723,7 +724,7 @@ export default function FormField({
             value: ilha.value,
             label: ilha.name,
           }))}
-          className={`react-select-container text-gray-500 ${
+          className={`react-select-container ${
             error ? "react-select--error" : ""
           }`}
           classNamePrefix="react-select"
@@ -739,16 +740,17 @@ export default function FormField({
           name={field.name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full p-2 border rounded-md text-gray-900 placeholder-gray-500 ${
+          className={`w-full p-2 border rounded-md text-gray-900 bg-white placeholder-gray-500 ${
             error ? "border-red-500" : "border-gray-300"
           }`}
           required={field.required}
+          style={{ color: '#111827' }}
         >
-          <option value="">
+          <option value="" style={{ color: '#6b7280' }}>
             {field.fieldPlaceholder || "Selecione uma opção"}
           </option>
           {options.map((opt) => (
-            <option key={opt.id} value={opt.name}>
+            <option key={opt.id} value={opt.name} style={{ color: '#111827' }}>
               {opt.name}
             </option>
           ))}
@@ -780,7 +782,7 @@ export default function FormField({
               {filteredOptions.map((opt) => (
                 <li
                   key={opt.id}
-                  className="px-4 py-2 hover:bg-[#002256] hover:text-white cursor-pointer"
+                  className="px-4 py-2 text-gray-900 text-sm hover:bg-[#002256] hover:text-white cursor-pointer"
                   onMouseDown={() => handleSelectOption(opt.name)}
                 >
                   {opt.name}
@@ -860,6 +862,7 @@ export default function FormField({
           min-height: 42px;
           border-radius: 0.375rem;
           border: 1px solid #d1d5db;
+          background-color: white;
         }
         .react-select__control--is-focused {
           box-shadow: 0 0 0 2px #002256;
@@ -867,6 +870,33 @@ export default function FormField({
         }
         .react-select--error .react-select__control {
           border-color: #ef4444;
+        }
+        .react-select__single-value {
+          color: #111827 !important;
+        }
+        .react-select__placeholder {
+          color: #6b7280 !important;
+        }
+        .react-select__input-container {
+          color: #111827 !important;
+        }
+        .react-select__menu {
+          background-color: white;
+        }
+        .react-select__option {
+          color: #111827 !important;
+        }
+        .react-select__option:hover {
+          background-color: #002256 !important;
+          color: white !important;
+        }
+        .react-select__option--is-selected {
+          background-color: #002256 !important;
+          color: white !important;
+        }
+        .react-select__option--is-focused {
+          background-color: #002256 !important;
+          color: white !important;
         }
         /* Date input customização */
         input[type='date'] { 

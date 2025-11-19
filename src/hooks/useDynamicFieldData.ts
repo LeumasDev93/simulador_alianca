@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchDomainData, fetchApiData, fetchSessionData, FieldOption } from "@/service/dynamicFieldService";
+import {
+  fetchDomainData,
+  fetchSessionData,
+  FieldOption,
+} from "@/service/dynamicFieldService";
+import { fetchDynamicApiData } from "@/service/dynamicApiService";
 
 interface FieldConfig {
   name: string;
@@ -103,55 +108,61 @@ export function useDynamicFieldData(
         // Se sourceData parece ser um endpoint completo (começa com http ou /), usa como API
         if (field.sourceData.startsWith("http") || field.sourceData.startsWith("/")) {
           // Trata como API quando sourceData é um endpoint completo
-          data = await fetchApiData(field.sourceData, field.provider || null, {});
+          data = await fetchDynamicApiData(
+            field.sourceData,
+            field.provider || null,
+            undefined,
+            dependencies
+          );
         } else {
           // Usa a função de domínio padrão
           data = await fetchDomainData(field.sourceData);
         }
       } else if (field.sourceDataType === "API") {
-        // Busca dados de API
-        // Se tem targetField, passa o valor como parâmetro
-        const params: Record<string, any> = {};
+        let targetValue: string | number | undefined;
+
         if (field.targetField && dependencies) {
           const dependencyValue = dependencies[field.targetField];
-          // Para campos como brand, precisa buscar o ID
-          // Se o sourceData tem {{id}}, substitui
-          if (field.sourceData.includes("{{id}}")) {
-            // Tenta buscar o ID do valor selecionado
-            // Primeiro tenta buscar da API de brands para obter o ID
-            if (field.targetField === "brand") {
+          if (dependencyValue !== undefined && dependencyValue !== null) {
+            targetValue = dependencyValue;
+
+            // Para campos de marca, tentar resolver o ID numérico
+            if (field.targetField === "brand" && typeof dependencyValue === "string") {
               try {
                 const brandsResponse = await fetch("/api/brands");
                 if (brandsResponse.ok) {
                   const brands = await brandsResponse.json();
-                  const brand = brands.find((b: any) => b.name === dependencyValue);
+                  const brand = brands.find(
+                    (b: any) =>
+                      b.name === dependencyValue ||
+                      String(b.id) === dependencyValue
+                  );
                   if (brand) {
-                    params.id = brand.id;
-                  } else {
-                    params.id = dependencyValue; // Fallback
+                    targetValue = brand.id;
                   }
-                } else {
-                  params.id = dependencyValue; // Fallback
                 }
               } catch {
-                params.id = dependencyValue; // Fallback
+                targetValue = dependencyValue;
               }
-            } else {
-              params.id = dependencyValue;
             }
-          } else {
-            // Se não tem {{id}}, passa o valor diretamente
-            params[field.targetField] = dependencyValue;
           }
         }
-        data = await fetchApiData(field.sourceData, field.provider || null, params);
+
+        data = await fetchDynamicApiData(
+          field.sourceData,
+          field.provider || null,
+          targetValue,
+          dependencies
+        );
       }
 
       setOptions(data);
       lastLoadKeyRef.current = loadKey;
+      setError(null); // Limpa erro se carregou com sucesso
     } catch (err) {
       console.error(`Erro ao carregar dados para campo ${field.name}:`, err);
-      setError(err instanceof Error ? err.message : "Erro ao carregar dados");
+      // Não faz throw, apenas mostra mensagem amigável no campo
+      setError("Sem dados no momento");
       setOptions([]);
       lastLoadKeyRef.current = loadKey;
     } finally {

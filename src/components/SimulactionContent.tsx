@@ -2,18 +2,16 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import SimulationForm from "./Simulation/Form/SimulationForm";
 import Header from "./Header";
 import Footer from "./Footer";
+import SimulationForm from "./simulation/form/SimulationForm";
 
 export default function SimulactionContent() {
 	const searchParams = useSearchParams();
 	const productId = searchParams.get("productId") || "";
 
 	return (
-		<main className="flex flex-col px-4 md:px-10 pt-8 pb-4 gap-8 min-h-screen bg-gradient-to-b from-blue-100 to-white">
-			<Header />
-			
+		<main className="flex flex-col px-4 md:px-10 pt-8 pb-4 gap-8 min-h-screen bg-gradient-to-b from-gray-200 to-white">
 			{productId ? (
 				<SimulationForm productId={productId} reset={() => {}} />
 			) : (

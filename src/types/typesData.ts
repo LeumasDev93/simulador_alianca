@@ -183,9 +183,11 @@ export interface ImagemProfile {
     name: string;
     description: string;
     icon?: string;
+    webIcon?: string | null;
     category?: string;
     tabs?: any[];
     bodyTemplate?: string;
+    public?: boolean;
   };
 
   export interface ApiResponse<T> {

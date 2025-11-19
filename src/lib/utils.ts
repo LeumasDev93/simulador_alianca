@@ -21,3 +21,18 @@ export function getSafeGridClass(gridSize?: number | string): string {
   return gridClasses[size] || 'grid-cols-3';
 }
 
+export function formatCurrency(
+  value: number,
+  currency: string = "CVE",
+  locale: string = "pt-CV"
+): string {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(value);
+  } catch {
+    return `${value.toFixed(2)} ${currency}`;
+  }
+}
+
