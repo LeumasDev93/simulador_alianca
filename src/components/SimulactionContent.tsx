@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
-import SimulationForm from "./simulation/form/SimulationForm";
+import SimulationForm from "@/components/simulation/form/SimulationForm";
 
 export default function SimulactionContent() {
 	const searchParams = useSearchParams();
