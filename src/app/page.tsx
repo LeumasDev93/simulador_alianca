@@ -1,9 +1,7 @@
 "use client";
 
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SimulationScreen from "@/components/simulation/SimulationScreen";
-import { FaCalculator, FaShieldAlt } from "react-icons/fa";
 
 export default function Page() {
 	return (
