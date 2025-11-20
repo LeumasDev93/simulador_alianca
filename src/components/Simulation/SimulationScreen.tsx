@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useProducts } from "@/hooks/useProducts";
 // SimulationForm não é mais usado aqui; navegação vai para /simulaction
 import ProductsTab from "../simulation/ProductsTab";
-import { Product } from "@/types/typesData";
 
 import { LoadingContainer } from "../ui/loading-container";
 import { FaExclamationTriangle } from "react-icons/fa";
