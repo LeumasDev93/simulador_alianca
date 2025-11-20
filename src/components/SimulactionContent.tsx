@@ -1,8 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Header from "./Header";
 import Footer from "./Footer";
 import SimulationForm from "./simulation/form/SimulationForm";
 
