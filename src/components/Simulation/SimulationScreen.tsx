@@ -2,7 +2,6 @@
 
 import { useProducts } from "@/hooks/useProducts";
 import ProductsTab from "../simulation/ProductsTab";
-
 import { LoadingContainer } from "../ui/loading-container";
 import { FaExclamationTriangle } from "react-icons/fa";
 
