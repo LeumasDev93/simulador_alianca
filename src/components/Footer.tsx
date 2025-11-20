@@ -1,4 +1,4 @@
-import { PaymentSecurityLogosFooter } from "./ui/PaymentSecurityLogosFooter";
+import { PaymentSecurityLogosFooter } from "@/components/ui/PaymentSecurityLogosFooter";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

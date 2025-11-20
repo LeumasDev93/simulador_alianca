@@ -2,7 +2,7 @@
 
 import { SessionProvider, useSession, signIn } from "next-auth/react";
 import { ReactNode, useEffect } from "react";
-import { LoadingContainer } from "./ui/loading-container";
+import { LoadingContainer } from "@/components/ui/loading-container";
 
 interface ProvidersProps {
   children: ReactNode;

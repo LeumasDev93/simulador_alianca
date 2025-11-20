@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { ApiResponse, Product } from '../types/typesData';
+import { ApiResponse, Product } from '@/types/typesData';
 
 export const useProductDetails = (productId: string) => {
     const [product, setProduct] = useState<Product | null>(null);

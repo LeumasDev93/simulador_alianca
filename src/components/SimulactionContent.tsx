@@ -1,8 +1,8 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import Footer from "./Footer";
-import SimulationForm from "./simulation/form/SimulationForm";
+import Footer from "@/components/Footer";
+import SimulationForm from "@/components/simulation/form/SimulationForm";
 
 export default function SimulactionContent() {
 	const searchParams = useSearchParams();
