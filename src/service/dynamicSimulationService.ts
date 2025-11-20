@@ -164,17 +164,11 @@ export function generateSimulationPayload(
 export const fetchDynamicSimulation = async (
   bodyTemplate: string,
   formValues: Record<string, any>,
-  setIsLoading: (loading: boolean) => void,
-  csrfToken?: string
+  setIsLoading: (loading: boolean) => void
 ) => {
   setIsLoading(true);
   
   try {
-    // Valida se tem CSRF token
-    if (!csrfToken) {
-      throw new Error("Token de segurança não disponível. Recarregue a página.");
-    }
-
     // Gera o payload dinamicamente
     const payload = generateSimulationPayload(bodyTemplate, formValues);
 
@@ -184,8 +178,7 @@ export const fetchDynamicSimulation = async (
 
     console.log("Enviando simulação:", {
       hasToken: !!token,
-      payloadKeys: Object.keys(payload),
-      csrfToken: !!csrfToken
+      payloadKeys: Object.keys(payload)
     });
 
     const response = await fetch("/api/simulation", {
@@ -193,7 +186,6 @@ export const fetchDynamicSimulation = async (
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "x-csrf-token": csrfToken,
       },
       body: JSON.stringify({
         token: token, // Se vazio, a rota API gerará um novo
@@ -204,12 +196,6 @@ export const fetchDynamicSimulation = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      
-      // Se for erro 403 (CSRF), mostra mensagem específica
-      if (response.status === 403) {
-        throw new Error('Erro de segurança. Por favor, recarregue a página e tente novamente.');
-      }
-      
       throw new Error(`Erro ${response.status}: ${JSON.stringify(errorData)}`);
     }
 

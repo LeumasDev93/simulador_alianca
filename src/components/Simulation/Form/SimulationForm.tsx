@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { JSX, useCallback, useEffect, useState } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DynamicFormField from "./DynamicFormField";
 import FormActions from "./FormActions";
@@ -77,7 +77,6 @@ export default function SimulationForm({
   const [isLoadingSimulation, setIsLoadingSimulation] = useState(false);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // Previne envios duplicados
-  const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
@@ -86,23 +85,6 @@ export default function SimulationForm({
   const [lastSimulationDetails, setLastSimulationDetails] =
     useState<SimulationResponse | null>(null);
   
-  // Load CSRF token on mount
-  const refreshCsrfToken = useCallback(async () => {
-    try {
-      const csrfResponse = await fetch("/api/csrf-token");
-      const { token } = await csrfResponse.json();
-      setCsrfToken(token);
-      return token as string;
-    } catch (error) {
-      console.error("Erro ao buscar CSRF token:", error);
-      return null;
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshCsrfToken();
-  }, [refreshCsrfToken]);
-
   // Load vehicle brands when token available or brand changes
   useEffect(() => {
     const loadBrands = async () => {
@@ -272,16 +254,6 @@ export default function SimulationForm({
         return;
       }
 
-      // Garante que temos um CSRF token válido
-      let tokenToUse = csrfToken;
-      if (!tokenToUse) {
-        tokenToUse = await refreshCsrfToken();
-        if (!tokenToUse) {
-          setSimulationError("Erro de segurança. Recarregue a página e tente novamente.");
-          return;
-        }
-      }
-
       try {
         console.log("Iniciando simulação com valores:", formValues);
         setIsSubmitting(true);
@@ -295,15 +267,13 @@ export default function SimulationForm({
           data = await fetchDynamicSimulation(
             product.bodyTemplate,
             formValues,
-            setIsLoading,
-            tokenToUse
+            setIsLoading
           );
         } else {
           // Fallback para simulação estática
           data = await fetchSimulation(
             formValues as any,
-            setIsLoading,
-            tokenToUse
+            setIsLoading
           );
         }
         
@@ -327,10 +297,6 @@ export default function SimulationForm({
           setIsModalOpen(true);
           setSimulationError(null);
         }
-
-        // Após sucesso, gera novo token para próxima simulação
-        await refreshCsrfToken();
-
         // Registro de atividade desativado conforme solicitação
       } catch (error: any) {
         console.error("Erro na simulação:", error);
