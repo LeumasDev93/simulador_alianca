@@ -1,7 +1,6 @@
 "use client";
 
 import { useProducts } from "@/hooks/useProducts";
-// SimulationForm não é mais usado aqui; navegação vai para /simulaction
 import ProductsTab from "../simulation/ProductsTab";
 
 import { LoadingContainer } from "../ui/loading-container";
