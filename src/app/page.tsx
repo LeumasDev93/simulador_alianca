@@ -5,6 +5,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { LoadingContainer } from "@/components/ui/loading-container";
 import { FaExclamationTriangle } from "react-icons/fa";
 import ProductsTab from "@/components/simulation/ProductsTab";
+import { Product } from "@/types/typesData";
 
 export default function Page() {
 	const { products, loading, error } = useProducts();
@@ -43,7 +44,7 @@ export default function Page() {
 					loading={loading}
 					error={error}
 					products={products}
-					onSelect={(p) => {
+					onSelect={(p: Product) => {
 					window.location.href = `/simulaction?productId=${p.productId}`;
 					}}
 				/>
